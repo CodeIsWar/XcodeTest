@@ -1,8 +1,9 @@
 #include <iostream>
+#include <print>
 #include <string>
 int main() {
-    std::cout << "what is your name: ";
+    std::print("what is your name: ");
     std::string name;
     std::cin >> name;
-    std::cout << "Hello, " << name << "!\n";
+    std::println("Hello, {}!", name);
 }

@@ -1,3 +1,4 @@
+set_languages("cxx23")
 add_rules("mode.release")
 target("demo")
     set_kind("binary")
