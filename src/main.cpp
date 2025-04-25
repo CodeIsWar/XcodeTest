@@ -1,5 +1,11 @@
+#ifdef _WIN32
 #ifdef _WIN64
 #include <Windows.h>
+#else
+#error windows x86 not support
+#endif
+#else
+#error platform not support, or you may help me improve it
 #endif
 #include <print>
 #include <thread>
@@ -7,7 +13,8 @@
 #include <condition_variable>
 std::mutex mtx;
 std::condition_variable cv;
-bool guisu=false;
+bool launched=false;
+bool guisuccess=true;
 #ifdef _WIN64
 LRESULT CALLBACK WndProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
     switch(msg){
@@ -24,6 +31,7 @@ void WinGUI(){
     wc.lpfnWndProc=WndProc;
     wc.hInstance=hInstance;
     wc.lpszClassName=CLASS_NAME;
+    mtx.lock();
     RegisterClassA(&wc);
     HWND hwnd=CreateWindowExA(
         0,
@@ -36,10 +44,15 @@ void WinGUI(){
         hInstance,
         NULL
     );
+    launched=true;
     if(hwnd==NULL){
+        guisuccess=false;
         return;
     }
+    mtx.unlock();
+    cv.notify_one();
     ShowWindow(hwnd,SW_SHOWNORMAL);
+    UpdateWindow(hwnd);
     MSG msg{};
     while(GetMessageA(&msg,NULL,0,0)>0){
         TranslateMessage(&msg);
@@ -49,6 +62,12 @@ void WinGUI(){
 }
 #endif
 int main() {
-    std::println("loading...");
+    std::unique_lock<std::mutex> lck(mtx);
     std::jthread gui(WinGUI);
+    std::println("loading...");
+    cv.wait(lck,[]{return launched;});
+    if(guisuccess)
+        std::println("Success!");
+    else
+        std::println("Error while trying to create the window!");
 }
