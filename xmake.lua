@@ -5,4 +5,6 @@ target("demo")
     add_files("src/*.cpp")
     if is_plat("windows") then
         add_cxxflags("/MD")
+        add_linkdirs("lib")
+        add_links("User32")
     end
